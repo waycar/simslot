@@ -1,0 +1,21 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: queue and crash-checker tests (Ubuntu, fake CoreSimulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: uuidgen for the fake simctl
+        run: command -v uuidgen || sudo apt-get install -y uuid-runtime
+      - name: sim-slot queue
+        run: bash scripts/test-sim-slot.sh
+      - name: crash-report checker
+        run: python3 scripts/test-check-crash-reports.py

@@ -1,0 +1,11 @@
+simslot
+Copyright 2026 OTREVA, LLC
+Licensed under the Apache License, Version 2.0.
+
+Extracted from Waycar (https://waycar.dev,
+https://github.com/waycar/waycar-app). scripts/run-app-simulator-tests.py is
+derived from, and modified from, Heeler:
+
+Heeler (https://github.com/ZingerLittleBee/Heeler)
+Copyright 2026 ZingerLittleBee and Heeler contributors
+Licensed under the Apache License, Version 2.0.

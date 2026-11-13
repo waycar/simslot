@@ -38,9 +38,10 @@ TEST_ACTIONS = {"test", "test-without-building"}
 # After a failure xcodebuild otherwise runs `simctl diagnose`, which can hang for
 # its full 600 s timeout while the run still holds its simulator lease.
 NO_DIAGNOSTICS = ["-collect-test-diagnostics", "never"]
-# run-with-timeout.py SIGKILLs the whole process group 5 s after its SIGTERM.
-# xcodebuild gets this long to exit after a forwarded signal, then SIGKILL, so
-# the preference restore still finishes inside that grace.
+# A watchdog may SIGKILL the whole process group soon after its SIGTERM (give it
+# a grace of 30 s on a loaded Mac). xcodebuild gets this long to exit after a
+# forwarded signal, then SIGKILL, so the preference restore runs in the rest of
+# that grace.
 FORWARDED_SIGNAL_GRACE_SECONDS = 2.0
 WAIT_POLL_SECONDS = 0.25
 CRASH_CHECKER = Path(__file__).resolve().parent / "check-crash-reports.py"
@@ -207,8 +208,13 @@ def run(arguments: list[str]) -> int:
         else:
             raise SystemExit(128 + signum)
 
+    # A hangup ends the run too (make over `ssh -t`, a closed terminal), so it
+    # restores like the others. A signal ignored on entry (nohup, a background
+    # job) stays ignored, for xcodebuild as well.
     previous_handlers = {
-        signum: signal.signal(signum, interrupt) for signum in (signal.SIGINT, signal.SIGTERM)
+        signum: signal.signal(signum, interrupt)
+        for signum in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+        if signal.getsignal(signum) is not signal.SIG_IGN
     }
     status = 1
     started = None
